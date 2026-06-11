@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import JoinButton from './JoinButton'
 
 export default function RoomCard({ channel }: { channel: any }) {
   return (
@@ -22,7 +23,7 @@ export default function RoomCard({ channel }: { channel: any }) {
         </div>
       </div>
       <div>
-        <Link href={`/feed/${channel.slug}`} className="rounded-full bg-gradient-to-br from-purple-500 to-pink-400 px-4 py-2 text-sm font-medium">Join</Link>
+        <JoinButton channelId={channel.id} joined={channel.joined} onJoin={() => { const ev = new CustomEvent('room-join', { detail: { id: channel.id } }); window.dispatchEvent(ev) }} />
       </div>
     </div>
   )
