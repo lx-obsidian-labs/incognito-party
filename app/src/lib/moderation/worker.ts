@@ -44,6 +44,6 @@ async function runOnce() {
 }
 
 export async function runWorker() {
-  // run in a loop for a short time (for serverless, run once per invocation)
+  // run one job at a time synchronously (avoid long loops in serverless)
   await runOnce()
 }
