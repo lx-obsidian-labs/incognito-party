@@ -65,7 +65,9 @@ export function MessageComposer({ recipientId, currentUserId, onSent, onTyping }
       // publish typing stop event through realtime so remote clears quickly (best-effort)
       try {
         const rs = createClient()
-        rs.channel(`dm-typing:${recipientId}`).send({ type: 'broadcast', event: 'typing', payload: { fromId: currentUserId ?? 'me', toId: recipientId } })
+        // Realtime channel typing: cast to any to avoid union typing issues in build step.
+        const ch = rs.channel(`dm-typing:${recipientId}`) as any
+        ch.send({ type: 'broadcast', event: 'typing', payload: { fromId: currentUserId ?? 'me', toId: recipientId } })
       } catch {}
 
       const res = await fetch('/api/dm/send', {
