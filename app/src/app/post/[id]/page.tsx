@@ -4,6 +4,8 @@ import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PostCard } from '@/components/feed/PostCard'
+import CommentList from '@/components/comments/CommentList'
+import CommentComposer from '@/components/comments/CommentComposer'
 import type { IPost } from '@/types'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 
@@ -115,6 +117,13 @@ export default function PostDetailPage({
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
       <PostCard post={post} />
+      <div className="max-w-2xl">
+        <h3 className="mt-6 mb-2 text-sm font-semibold">Responses</h3>
+        <CommentComposer postId={post.id} onCreated={() => { /* reload list below by simple event */ const el = document.querySelector('#comments-list') as any; if (el) { el._reload?.() } }} />
+        <div id="comments-list">
+          <CommentList postId={post.id} />
+        </div>
+      </div>
     </div>
   )
 }
