@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
+// Simple in-memory cache to avoid repeated DB counts on high traffic.
+// Note: serverless functions are ephemeral; cache helps per-instance only.
+let _statsCache: { ts: number; stats: any[] } | null = null
+const CACHE_TTL = 30_000 // 30 seconds
+
 export async function GET() {
+  // Return cached result when fresh
+  if (_statsCache && Date.now() - _statsCache.ts < CACHE_TTL) {
+    return NextResponse.json({ stats: _statsCache.stats })
+  }
+
   const supabase = await createServerSupabaseClient()
 
   const { data: channels } = await supabase.from('channels').select('id')
@@ -19,6 +29,9 @@ export async function GET() {
       recent_posts: postsRes.count ?? 0,
     }
   }))
+
+  // Update cache
+  _statsCache = { ts: Date.now(), stats }
 
   return NextResponse.json({ stats })
 }
