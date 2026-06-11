@@ -7,7 +7,7 @@ import { AvatarPlaceholder } from '@/components/shared/AvatarPlaceholder'
 import { HandleDisplay } from '@/components/shared/HandleDisplay'
 import FollowersList from '@/components/users/FollowersList'
 import { PostCard } from '@/components/feed/PostCard'
-import { formatRelativeTime } from '@/lib/utils'
+
 import { PersonaCard } from '@/components/ai/PersonaCard'
 import { AdvicePanel } from '@/components/ai/AdvicePanel'
 import { PaidChatModal } from '@/components/dm/PaidChatModal'
@@ -109,28 +109,32 @@ export default function UserProfilePage({
     load()
   }, [handle])
 
-  const loadPersona = async (posts?: IPost[]) => {
+  const loadPersona = async (postsData?: IPost[]) => {
     if (personaLoading) return
+    const toAnalyze = postsData ?? posts
+    if (!toAnalyze || toAnalyze.length === 0) return
     setPersonaLoading(true)
     try {
       const resp = await fetch('/api/ai/persona', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ posts: posts ?? posts }),
+        body: JSON.stringify({ posts: toAnalyze }),
       })
       const data = await resp.json()
       if (data.persona) setPersona(data)
     } catch { /* ignore */ } finally { setPersonaLoading(false) }
   }
 
-  const loadAdvice = async (posts?: IPost[]) => {
+  const loadAdvice = async (postsData?: IPost[]) => {
     if (adviceLoading) return
+    const toAnalyze = postsData ?? posts
+    if (!toAnalyze || toAnalyze.length === 0) return
     setAdviceLoading(true)
     try {
       const resp = await fetch('/api/ai/advice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ posts: posts ?? posts }),
+        body: JSON.stringify({ posts: toAnalyze }),
       })
       const data = await resp.json()
       if (data.advice) setAdvice(data.advice)
@@ -201,7 +205,7 @@ export default function UserProfilePage({
           {currentUserId !== user.id ? (
             <>
               <button
-                onClick={() => setShowPaidChat(true)}
+                onClick={() => router.push(`/dm/${user.handle}`)}
                 className="flex items-center gap-2 rounded-xl border border-inc-accent bg-inc-accent/10 px-5 py-2 text-sm font-medium text-inc-accent hover:bg-inc-accent/20 transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -266,6 +270,8 @@ export default function UserProfilePage({
           </div>
         </div>
       )}
+      <PaidChatModal open={showPaidChat} onClose={() => setShowPaidChat(false)} recipientId={user.id} recipientHandle={user.handle} />
+      <CommunityGuidelines open={showGuidelines} onClose={() => setShowGuidelines(false)} />
       {showFollowing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-inc-card rounded-xl p-6 w-96">
