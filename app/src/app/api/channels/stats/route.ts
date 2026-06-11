@@ -4,22 +4,21 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 export async function GET() {
   const supabase = await createServerSupabaseClient()
 
-  // subscribers count from channel_subs and recent posts count in last 24h
-  const sql = `
-    SELECT
-      c.id as channel_id,
-      COUNT(distinct cs.user_id) as subscribers,
-      COUNT(p.id) FILTER (WHERE p.created_at >= now() - interval '24 hours') as recent_posts
-    FROM channels c
-    LEFT JOIN channel_subs cs ON cs.channel_id = c.id
-    LEFT JOIN posts p ON p.channel_id = c.id
-    GROUP BY c.id
-  `
+  const { data: channels } = await supabase.from('channels').select('id')
+  if (!channels) return NextResponse.json({ stats: [] })
 
-  const { data, error } = await supabase.rpc('sql', { q: sql } as any).catch(() => ({ data: null, error: null }))
+  // For each channel compute subscribers and recent_posts (last 24h).
+  const stats = await Promise.all((channels as any[]).map(async (c) => {
+    const channelId = c.id as string
+    const subsRes = await supabase.from('channel_subs').select('user_id', { count: 'exact' }).eq('channel_id', channelId)
+    const postsRes = await supabase.from('posts').select('id', { count: 'exact' }).eq('channel_id', channelId).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
 
-  // Fallback: if RPC not allowed, return empty stats
-  if (error || !data) return NextResponse.json({ stats: [] })
+    return {
+      channel_id: channelId,
+      subscribers: subsRes.count ?? 0,
+      recent_posts: postsRes.count ?? 0,
+    }
+  }))
 
-  return NextResponse.json({ stats: data })
+  return NextResponse.json({ stats })
 }
