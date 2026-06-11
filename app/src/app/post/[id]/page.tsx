@@ -17,6 +17,7 @@ export default function PostDetailPage({
   const { id } = use(params)
   const router = useRouter()
   const [post, setPost] = useState<IPost | null>(null)
+  const [comments, setComments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -35,8 +36,8 @@ export default function PostDetailPage({
       .single()
       .then(({ data }) => {
         if (data) {
-          setPost({
-            id: data.id as string,
+        setPost({
+          id: data.id as string,
             channel_id: data.channel_id as string,
             author_id: data.author_id as string,
             content: data.content as string,
@@ -52,6 +53,8 @@ export default function PostDetailPage({
               ?.filter((i) => i.type === 'super_like').length ?? 0,
             tip_count: (data.interactions as Array<{ type: string }>)
               ?.filter((i) => i.type === 'tip').length ?? 0,
+            mood: (data as any).mood ?? null,
+            comments_count: (data as any).comments_count ?? 0,
           })
         }
         setLoading(false)
@@ -59,6 +62,14 @@ export default function PostDetailPage({
   }
 
   useEffect(() => { fetchPost() }, [id])
+
+  useEffect(() => {
+    // load comments
+    fetch(`/api/comments?post_id=${id}`)
+      .then((r) => r.json())
+      .then((j) => setComments(j.comments ?? []))
+      .catch((e) => console.error(e))
+  }, [id])
 
   useEffect(() => {
     if (post && !loading) {
@@ -119,10 +130,8 @@ export default function PostDetailPage({
       <PostCard post={post} />
       <div className="max-w-2xl">
         <h3 className="mt-6 mb-2 text-sm font-semibold">Responses</h3>
-        <CommentComposer postId={post.id} onCreated={() => { /* reload list below by simple event */ const el = document.querySelector('#comments-list') as any; if (el) { el._reload?.() } }} />
-        <div id="comments-list">
-          <CommentList postId={post.id} />
-        </div>
+        <CommentComposer postId={post.id} onCreated={(c) => { setComments((s) => [...s, c]); setPost((p) => p ? ({ ...p, comments_count: (p.comments_count ?? 0) + 1 }) : p) }} />
+        <CommentList comments={comments} />
       </div>
     </div>
   )
