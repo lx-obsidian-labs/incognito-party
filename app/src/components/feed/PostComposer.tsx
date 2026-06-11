@@ -93,7 +93,7 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
     if (!authUser) {
       toast('Signing in anonymously...')
       try {
-        const { data: anonData, error: anonErr } = await supabase.auth.signInAnonymously()
+        const { data: anonData, error: anonErr } = (await (supabase.auth as any).signInAnonymously()) as any
         if (anonErr || !anonData?.user) {
           setPosting(false)
           toast(anonErr?.message ?? 'Anonymous sign-in failed')
