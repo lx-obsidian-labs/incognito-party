@@ -10,10 +10,10 @@
     "test:e2e": "playwright test",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "echo postinstall"
   },
   "dependencies": {
-    
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1",
     "class-variance-authority": "^0.7.1",
@@ -26,9 +26,6 @@
     "tailwind-merge": "^3.6.0",
     "uuid": "^14.0.0",
     "@vercel/analytics": "^1.0.0"
-  },
-  "scripts": {
-    "postinstall": "echo postinstall"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

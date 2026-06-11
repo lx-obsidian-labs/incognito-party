@@ -562,6 +562,7 @@ export function createMockClient() {
         in: (col: string, vals: unknown[]) => typeof builder
         or: (filterStr: string) => typeof builder
         single: () => Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>
+        maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>
         order: (col: string, opts?: { ascending?: boolean }) => typeof builder
         limit: (n: number) => typeof builder
         then: <T>(resolve: (v: { data: unknown[]; error: null }) => T, reject?: (e: Error) => T) => Promise<T>
@@ -655,6 +656,10 @@ export function createMockClient() {
         single: () => {
           const result = data[0] ?? null
           return Promise.resolve({ data: result, error: result ? null : { message: 'Not found' } })
+        },
+        maybeSingle: () => {
+          const result = data[0] ?? null
+          return Promise.resolve({ data: result, error: null })
         },
         order: (col: string, opts?: { ascending?: boolean }) => {
           const asc = opts?.ascending ?? true
