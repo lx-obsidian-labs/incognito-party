@@ -483,6 +483,10 @@ export function createMockClient() {
 
   return {
     auth: {
+      getUser: () => {
+        const sessionRes = getSession()
+        return Promise.resolve({ data: { user: sessionRes.data.session?.user ?? null } })
+      },
       getSession: () => Promise.resolve(getSession()),
       signInAnonymously: () => {
         const sessionRes = getSession()
@@ -561,6 +565,7 @@ export function createMockClient() {
         lt: (col: string, val: unknown) => typeof builder
         in: (col: string, vals: unknown[]) => typeof builder
         or: (filterStr: string) => typeof builder
+        ilike: (col: string, val: string) => typeof builder
         single: () => Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>
         maybeSingle: () => Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>
         order: (col: string, opts?: { ascending?: boolean }) => typeof builder
@@ -618,6 +623,12 @@ export function createMockClient() {
         in: (col: string, vals: unknown[]) => {
           filters.push((r) => (vals as unknown[]).includes(r[col]))
           data = data.filter((r) => (vals as unknown[]).includes(r[col]))
+          return builder
+        },
+        ilike: (col: string, val: string) => {
+          const pattern = val.replace(/%/g, '').toLowerCase()
+          filters.push((r) => String(r[col] ?? '').toLowerCase().includes(pattern))
+          data = data.filter((r) => String(r[col] ?? '').toLowerCase().includes(pattern))
           return builder
         },
         or: (filterStr: string) => {

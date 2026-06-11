@@ -47,12 +47,13 @@ export async function DELETE(req: Request) {
   // Ensure author owns the comment
   const { data: existing, error: fetchErr } = await supabase.from('comments').select('author_id, post_id').eq('id', id).single()
   if (fetchErr || !existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if ((existing as any).author_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if ((existing as { author_id: string }).author_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { error } = await supabase.from('comments').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({ success: true })
+
 }
 
 export async function PATCH(req: Request) {
@@ -68,7 +69,7 @@ export async function PATCH(req: Request) {
 
   const { data: existing, error: fetchErr } = await supabase.from('comments').select('author_id').eq('id', id).single()
   if (fetchErr || !existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if ((existing as any).author_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if ((existing as { author_id: string }).author_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const { data, error } = await supabase.from('comments').update({ content }).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   try {
     const result = await runWorker()
     return NextResponse.json({ ok: true, processed: Array.isArray(result) ? result.length : 0, result })
-  } catch (e: any) {
+  } catch (e) {
     console.error('runWorker error', e)
     return NextResponse.json({ error: 'worker_error', detail: String(e) }, { status: 500 })
   }

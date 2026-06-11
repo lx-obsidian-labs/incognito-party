@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // Check sender has enough balance
-  const { data: wallet } = await supabase.from('wallets').select('balance').eq('user_id', user.id).single()
+  const { data: wallet } = await supabase.from('wallets').select('id, balance').eq('user_id', user.id).single()
   if (!wallet || wallet.balance < amount) {
     return NextResponse.json({ error: 'Not enough credits' }, { status: 400 })
   }

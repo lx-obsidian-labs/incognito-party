@@ -8,7 +8,7 @@ export default function NotFound() {
       </div>
       <h2 className="text-lg font-bold text-inc-text">Page not found</h2>
       <p className="text-sm text-inc-muted max-w-sm">
-        This page doesn't exist or has been removed.
+        This page doesn&apos;t exist or has been removed.
       </p>
       <Link
         href="/feed"

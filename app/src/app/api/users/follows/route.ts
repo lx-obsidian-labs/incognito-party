@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   if (type === 'followers') {
     // followers: rows where followed_id = user.id, return follower handle and avatar
     const { data } = await supabase.from('follows').select('follower_id').eq('followed_id', user.id)
-    const ids = (data ?? []).map((r: any) => r.follower_id)
+    const ids = (data ?? []).map((r: Record<string, unknown>) => r.follower_id as string)
     if (ids.length === 0) return NextResponse.json({ count: 0, users: [] })
     const { data: users } = await supabase.from('anon_users').select('id, handle, avatar_color').in('id', ids)
     return NextResponse.json({ count: users?.length ?? 0, users: users ?? [] })
@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
   // following: rows where follower_id = user.id
   const { data } = await supabase.from('follows').select('followed_id').eq('follower_id', user.id)
-  const ids = (data ?? []).map((r: any) => r.followed_id)
+  const ids = (data ?? []).map((r: Record<string, unknown>) => r.followed_id as string)
   if (ids.length === 0) return NextResponse.json({ count: 0, users: [] })
   const { data: users } = await supabase.from('anon_users').select('id, handle, avatar_color').in('id', ids)
   return NextResponse.json({ count: users?.length ?? 0, users: users ?? [] })

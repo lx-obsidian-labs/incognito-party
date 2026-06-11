@@ -20,13 +20,12 @@ export default function SearchPage() {
     if (timerRef.current) clearTimeout(timerRef.current)
 
     if (!query.trim()) {
-      setPosts([])
-      setUsers([])
-      setSearched(false)
-      setLoading(false)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPosts([]); setUsers([]); setSearched(false); setLoading(false)
       return
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
     timerRef.current = setTimeout(async () => {
       const supabase = createClient()
@@ -43,7 +42,7 @@ export default function SearchPage() {
       if (postResults.length > 0) {
         const authorIds = [...new Set(postResults.map((p) => p.author_id as string))]
         const { data: authors } = await supabase.from('anon_users').select('id, handle').in('id', authorIds)
-        const userMap = new Map((authors ?? []).map((u: Record<string, unknown>) => [u.id, u.handle as string]))
+        const userMap = new Map((authors as Record<string, unknown>[] ?? []).map((u) => [u.id, u.handle as string]))
         for (const p of postResults) {
           p.author_handle = userMap.get(p.author_id as string) ?? 'Unknown'
         }

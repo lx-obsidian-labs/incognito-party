@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ConfirmModal } from '@/components/shared/ConfirmModal'
-import { toast } from 'react-hot-toast'
+import { toast } from 'sonner'
 
 interface Props {
   open: boolean

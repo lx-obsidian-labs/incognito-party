@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Home, Search, MessageCircle, Bell, Wallet, Bookmark, Settings, Sparkles } from 'lucide-react'
 import { Tooltip } from '@/components/shared/Tooltip'
 
+
 const tabConfig = [
   { href: '/feed', label: 'Feed', icon: Home },
   { href: '/search', label: 'Search', icon: Search },
@@ -46,16 +47,19 @@ export function Navbar() {
       if (mounted) setUnreadCount((notifRes.data as unknown[])?.length ?? 0)
 
       // Subscribe to wallet changes
-      const walletSub = supabase.channel('navbar-wallet')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${session.user.id}` }, (payload) => {
-          if (payload.new && mounted) setWalletBalance((payload.new as any).balance)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ch = supabase.channel as any
+      const walletSub = ch('navbar-wallet')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${session.user.id}` }, (payload: Record<string, unknown>) => {
+          if (payload.new && mounted) setWalletBalance((payload.new as Record<string, unknown>).balance as number)
         })
         .subscribe()
 
-      const notifSub = supabase.channel('navbar-notif')
+      const notifSub = ch('navbar-notif')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${session.user.id}` }, () => {
           if (!mounted) return
-          supabase.from('notifications').select('id').eq('user_id', session.user.id).eq('read', false).then(({ data }) => {
+          void (supabase.from('notifications').select('id').eq('user_id', session.user.id).eq('read', false) as unknown as Promise<{ data: unknown[] | null }>)
+          .then(({ data }) => {
             if (mounted) setUnreadCount((data ?? []).length)
           })
         })

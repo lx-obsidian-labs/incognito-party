@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'myPosts array required' }, { status: 400 })
   }
 
-  const myText = myPosts.map((p: any) => p.content).join(' | ')
+  const myText = myPosts.map((p: Record<string, unknown>) => p.content as string).join(' | ')
 
   // Fetch a sample of other users' recent posts
   const supabase = createAdminClient()

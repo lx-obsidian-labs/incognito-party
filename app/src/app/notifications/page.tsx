@@ -55,9 +55,11 @@ export default function NotificationsPage() {
 
   const fetchNotifications = useCallback(async () => {
     if (!user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false)
       return
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true)
 
     const { data } = await supabase

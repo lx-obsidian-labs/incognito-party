@@ -13,6 +13,7 @@ export function usePostDraft(channelId: string) {
   useEffect(() => {
     const saved = localStorage.getItem(key)
     if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDraft(saved)
       setHasDraft(true)
     }

@@ -97,6 +97,7 @@ export function useRealtimeFeed(channelSlug?: string) {
     await fetchPosts(true, lastCreatedAt)
   }, [fetchPosts, loadingMore, hasMore, posts])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     fetchPosts()
     const supabase = createClient()

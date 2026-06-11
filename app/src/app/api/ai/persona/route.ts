@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'posts array required' }, { status: 400 })
   }
 
-  const postText = posts.map((p: any) => `[${p.mood || 'general'}] ${p.content}`).join('\n')
+  const postText = posts.map((p: Record<string, unknown>) => `[${(p.mood as string) || 'general'}] ${p.content as string}`).join('\n')
   const system = `Analyze these anonymous posts and return ONLY a JSON object:
 {
   "persona": "A short 2-3 word label describing this person's current life persona",

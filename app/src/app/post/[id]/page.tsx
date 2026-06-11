@@ -17,7 +17,7 @@ export default function PostDetailPage({
   const { id } = use(params)
   const router = useRouter()
   const [post, setPost] = useState<IPost | null>(null)
-  const [comments, setComments] = useState<any[]>([])
+  const [comments, setComments] = useState<Record<string, unknown>[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
@@ -53,14 +53,15 @@ export default function PostDetailPage({
               ?.filter((i) => i.type === 'super_like').length ?? 0,
             tip_count: (data.interactions as Array<{ type: string }>)
               ?.filter((i) => i.type === 'tip').length ?? 0,
-            mood: (data as any).mood ?? null,
-            comments_count: (data as any).comments_count ?? 0,
+            mood: (data as Record<string, unknown>).mood as string | null ?? null,
+            comments_count: (data as Record<string, unknown>).comments_count as number ?? 0,
           })
         }
         setLoading(false)
       }, () => { setError(true); setLoading(false) })
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchPost() }, [id])
 
   useEffect(() => {

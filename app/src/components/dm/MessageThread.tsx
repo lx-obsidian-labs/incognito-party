@@ -122,10 +122,9 @@ export function MessageThread({ otherHandle, otherId, currentUserId, typing, sea
           (payload: Record<string, unknown>) => {
            const newMsg = payload.new as IDirectMessage
            // reconcile pending by temp_client_id if present
-           if ((newMsg as any).temp_client_id) {
+           if (newMsg.temp_client_id) {
              setMessages((prev) => {
-               // remove any pending item with same temp_client_id
-               const filtered = prev.filter((m) => (m as any).temp_client_id !== (newMsg as any).temp_client_id)
+               const filtered = prev.filter((m) => m.temp_client_id !== newMsg.temp_client_id)
                return [...filtered, newMsg]
              })
            } else {
@@ -148,9 +147,8 @@ export function MessageThread({ otherHandle, otherId, currentUserId, typing, sea
              .from('direct_messages')
              .update({ is_read: true })
              .eq('id', msg.id) as unknown as Promise<unknown>).then(() => {})
-           // reconcile pending if applicable
-           if ((msg as any).temp_client_id) {
-             setMessages((prev) => prev.filter((m) => (m as any).temp_client_id !== (msg as any).temp_client_id).concat([{ ...msg, is_read: true }]))
+           if (msg.temp_client_id) {
+             setMessages((prev) => prev.filter((m) => m.temp_client_id !== msg.temp_client_id).concat([{ ...msg, is_read: true }]))
            } else {
              setMessages((prev) => [...prev, { ...msg, is_read: true }])
            }
@@ -161,7 +159,7 @@ export function MessageThread({ otherHandle, otherId, currentUserId, typing, sea
     // subscribe to typing broadcasts for this thread
     try {
       s.channel(`dm-typing:${otherId}`).on('broadcast', { event: 'typing' }, (payload: Record<string, unknown>) => {
-        const p = payload as any
+        const p = payload as { payload?: { fromId?: string; toId?: string } }
         if (p?.payload?.fromId === otherId && p?.payload?.toId === currentUserId) {
           setOtherTyping(true)
           if (typingTimerRef.current) window.clearTimeout(typingTimerRef.current)
@@ -199,6 +197,7 @@ export function MessageThread({ otherHandle, otherId, currentUserId, typing, sea
       // on success, realtime will reconcile
     } catch (err) {
       setMessages((prev) => prev.map((m) => (m.temp_client_id === temp_client_id ? { ...m, is_pending: false, is_failed: true } : m)))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const message = err && typeof err === 'object' && 'message' in err ? (err as any).message : String(err)
       toast(message ?? 'Retry failed')
     }

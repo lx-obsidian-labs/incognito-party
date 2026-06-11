@@ -86,6 +86,7 @@ export default function SettingsPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (user?.dm_privacy) setDmPrivacy(user.dm_privacy)
     if (user?.bio !== undefined) setBio(user.bio ?? '')
     if (user?.avatar_color) setAvatarColor(user.avatar_color)

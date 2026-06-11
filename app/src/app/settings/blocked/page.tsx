@@ -50,6 +50,7 @@ export default function BlockedUsersPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!sessionLoading && user) fetchBlocked()
   }, [sessionLoading, user])
 

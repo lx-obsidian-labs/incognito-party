@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'posts array required' }, { status: 400 })
   }
 
-  const postText = posts.map((p: any) => `[${p.mood || 'general'}] ${p.content}`).join('\n')
+  const postText = posts.map((p: Record<string, unknown>) => `[${(p.mood as string) || 'general'}] ${p.content as string}`).join('\n')
   const questionText = question || 'What advice would help this person most right now?'
   const system = `You are a kind, empathetic advisor for an anonymous social platform. You read someone's posts and give thoughtful, personalized advice. Be warm, specific, and encouraging. Keep it under 150 words.`
   const user = `Here are their recent posts:\n${postText}\n\n---\n\n${questionText}`

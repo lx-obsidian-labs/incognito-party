@@ -4,14 +4,13 @@ import { useEffect, useState } from 'react'
 import { AvatarPlaceholder } from '@/components/shared/AvatarPlaceholder'
 
 export default function FollowersList({ handle, type = 'followers' }: { handle: string; type?: 'followers' | 'following' }) {
-  const [list, setList] = useState<any[]>([])
+  const [list, setList] = useState<Record<string, unknown>[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setLoading(true)
     fetch(`/api/users/follows?handle=${encodeURIComponent(handle)}&type=${type}`)
       .then((r) => r.json())
-      .then((j) => setList(j.users ?? []))
+      .then((j: Record<string, unknown>) => setList((j.users ?? []) as Record<string, unknown>[]))
       .catch(() => setList([]))
       .finally(() => setLoading(false))
   }, [handle, type])
@@ -21,10 +20,10 @@ export default function FollowersList({ handle, type = 'followers' }: { handle: 
 
   return (
     <div className="space-y-2">
-      {list.map((u) => (
-        <div key={u.id} className="flex items-center gap-3">
-          <AvatarPlaceholder handle={u.handle} size="sm" color={u.avatar_color} />
-          <div className="text-sm font-medium">@{u.handle}</div>
+      {list.map((u: Record<string, unknown>) => (
+        <div key={u.id as string} className="flex items-center gap-3">
+          <AvatarPlaceholder handle={u.handle as string} size="sm" color={u.avatar_color as string} />
+          <div className="text-sm font-medium">@{u.handle as string}</div>
         </div>
       ))}
     </div>

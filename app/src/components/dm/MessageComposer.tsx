@@ -25,10 +25,9 @@ export function MessageComposer({ recipientId, currentUserId, onSent, onTyping }
     const supabase = createClient()
 
     // If we don't have a currentUserId prop, attempt anonymous sign-in
-      if (!currentUserId) {
+    if (!currentUserId) {
       try {
-        // signInAnonymously has a union return type in the supabase client typings.
-        // Cast to any to avoid a type narrowing issue during build — behavior is unchanged at runtime.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: anonData, error: anonErr } = (await supabase.auth.signInAnonymously()) as any
         if (anonErr || !anonData?.user) {
           setSending(false)
@@ -37,7 +36,7 @@ export function MessageComposer({ recipientId, currentUserId, onSent, onTyping }
         }
         // ensure server creates anon_users row
         await fetch('/api/auth/anon', { method: 'POST' })
-      } catch (e) {
+      } catch {
         setSending(false)
         toast('Anonymous sign-in failed')
         return
@@ -54,7 +53,7 @@ export function MessageComposer({ recipientId, currentUserId, onSent, onTyping }
       created_at: new Date().toISOString(),
       is_read: false,
       temp_client_id: tempId,
-    } as any
+    }
     // dispatch a custom event so MessageThread can append the pending message immediately
     window.dispatchEvent(new CustomEvent('dm:pending', { detail: pendingMsg }))
 
@@ -65,7 +64,7 @@ export function MessageComposer({ recipientId, currentUserId, onSent, onTyping }
       // publish typing stop event through realtime so remote clears quickly (best-effort)
       try {
         const rs = createClient()
-        // Realtime channel typing: cast to any to avoid union typing issues in build step.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const ch = rs.channel(`dm-typing:${recipientId}`) as any
         ch.send({ type: 'broadcast', event: 'typing', payload: { fromId: currentUserId ?? 'me', toId: recipientId } })
       } catch {}
@@ -90,6 +89,7 @@ export function MessageComposer({ recipientId, currentUserId, onSent, onTyping }
       setSending(false)
       // mark pending message as failed so UI can show retry
       window.dispatchEvent(new CustomEvent('dm:pending-failed', { detail: { temp_client_id: tempId } }))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const message = err && typeof err === 'object' && 'message' in err ? (err as any).message : String(err)
       toast(message ?? 'Something hiccuped. Try again?')
       return

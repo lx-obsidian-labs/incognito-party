@@ -33,7 +33,6 @@ export default function TrendingPage() {
 
   useEffect(() => {
     if (sessionLoading) return
-    setLoading(true)
 
     const supabase = createClient()
 

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Anonymous flow', () => {
-  test('sign in anonymously, create regular post and a moment, verify in feed', async ({ page, baseURL }) => {
+  test('sign in anonymously, create regular post and a moment, verify in feed', async ({ page }) => {
     // Navigate to feed (advice channel)
     await page.goto('/feed/advice')
 

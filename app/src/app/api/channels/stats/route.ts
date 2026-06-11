@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 // Simple in-memory cache to avoid repeated DB counts on high traffic.
 // Note: serverless functions are ephemeral; cache helps per-instance only.
-let _statsCache: { ts: number; stats: any[] } | null = null
+let _statsCache: { ts: number; stats: Record<string, unknown>[] } | null = null
 const CACHE_TTL = 30_000 // 30 seconds
 
 export async function GET() {
@@ -18,7 +18,7 @@ export async function GET() {
   if (!channels) return NextResponse.json({ stats: [] })
 
   // For each channel compute subscribers and recent_posts (last 24h).
-  const stats = await Promise.all((channels as any[]).map(async (c) => {
+  const stats = await Promise.all(channels.map(async (c: Record<string, unknown>) => {
     const channelId = c.id as string
     const subsRes = await supabase.from('channel_subs').select('user_id', { count: 'exact' }).eq('channel_id', channelId)
     const postsRes = await supabase.from('posts').select('id', { count: 'exact' }).eq('channel_id', channelId).gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())

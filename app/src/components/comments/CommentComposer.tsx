@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-export default function CommentComposer({ postId, onCreated }: { postId: string; onCreated?: (c: any) => void }) {
+export default function CommentComposer({ postId, onCreated }: { postId: string; onCreated?: (c: Record<string, unknown>) => void }) {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
 

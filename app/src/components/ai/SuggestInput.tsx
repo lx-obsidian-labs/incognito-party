@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Card } from '@/components/shared/Card'
-import { toast } from 'react-hot-toast'
+import { toast } from 'sonner'
 
 type SuggestionMode = 'food-suggestion' | 'activity-suggestion' | 'life-suggestion' | 'encouragement'
 

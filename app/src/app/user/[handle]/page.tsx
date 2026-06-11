@@ -89,7 +89,7 @@ export default function UserProfilePage({
         ])
         setFollowerCount(fRes.count ?? 0)
         setFollowingCount(fgRes.count ?? 0)
-      } catch (e) {
+      } catch {
         // ignore
       }
 
@@ -109,7 +109,7 @@ export default function UserProfilePage({
     load()
   }, [handle])
 
-  const loadPersona = async (postsData?: IPost[]) => {
+  async function loadPersona(postsData?: IPost[]) {
     if (personaLoading) return
     const toAnalyze = postsData ?? posts
     if (!toAnalyze || toAnalyze.length === 0) return
@@ -125,7 +125,7 @@ export default function UserProfilePage({
     } catch { /* ignore */ } finally { setPersonaLoading(false) }
   }
 
-  const loadAdvice = async (postsData?: IPost[]) => {
+  async function loadAdvice(postsData?: IPost[]) {
     if (adviceLoading) return
     const toAnalyze = postsData ?? posts
     if (!toAnalyze || toAnalyze.length === 0) return

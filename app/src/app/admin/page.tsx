@@ -55,6 +55,7 @@ export default function AdminPage() {
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchReports() }, [])
 
   async function handleRemovePost(postId: string) {

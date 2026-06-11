@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { Card } from '@/components/shared/Card'
-import { toast } from 'react-hot-toast'
+import { toast } from 'sonner'
 import type { IDMIntent } from '@/types'
 
 interface Props {
   userId: string
 }
 
-export function DMIntentsInbox({ userId }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function DMIntentsInbox({ userId: _userId }: Props) {
   const [intents, setIntents] = useState<IDMIntent[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState<string | null>(null)
@@ -27,6 +28,7 @@ export function DMIntentsInbox({ userId }: Props) {
     }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchIntents() }, [])
 
   const handleResponse = async (intentId: string, status: 'accepted' | 'declined') => {
