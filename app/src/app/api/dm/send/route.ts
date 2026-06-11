@@ -17,15 +17,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Content exceeds 2000 characters' }, { status: 400 })
   }
 
+  // Check if DMs are allowed (relationship or paid intent)
   const { data: rel } = await supabase
     .from('dm_relationships')
     .select('*')
     .eq('user_id', recipient_id)
     .eq('allowed_user_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (!rel) {
-    return NextResponse.json({ error: 'User has not allowed DMs from you' }, { status: 403 })
+    // Check for an active paid intent
+    const { data: intent } = await supabase
+      .from('dm_intents')
+      .select('*')
+      .eq('sender_id', user.id)
+      .eq('recipient_id', recipient_id)
+      .eq('status', 'accepted')
+      .maybeSingle()
+
+    if (!intent) {
+      // Also check if recipient allows anyone
+      const { data: recipient } = await supabase
+        .from('anon_users')
+        .select('dm_privacy')
+        .eq('id', recipient_id)
+        .single()
+
+      if (recipient?.dm_privacy !== 'anyone') {
+        return NextResponse.json({ error: 'This user has not opened DMs with you. Send them a chat request with credits to start a conversation.' }, { status: 403 })
+      }
+    }
   }
 
   const insertObj: Record<string, unknown> = {

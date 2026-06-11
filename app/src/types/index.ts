@@ -143,6 +143,41 @@ export interface IAchievement {
 
 export type InteractionType = 'like' | 'super_like' | 'tip'
 
+export interface IPersona {
+  persona: string
+  vibe: string
+  interests: string[]
+  needs: string
+  topics: string[]
+  advice: string
+}
+
+export interface IMatchSuggestion {
+  handle: string
+  reason: string
+}
+
+export interface IDMIntent {
+  id: string
+  sender_id: string
+  recipient_id: string
+  amount: number
+  message: string
+  status: 'pending' | 'accepted' | 'declined' | 'expired'
+  hours: number
+  created_at: string
+  responded_at?: string
+  sender_handle?: string
+  recipient_handle?: string
+}
+
+export interface IContentFlag {
+  id: string
+  pattern: string
+  label: string
+  action: 'flag' | 'block' | 'warn'
+}
+
 export const CHANNEL_SLUGS = [
   'advice',
   'confessions',

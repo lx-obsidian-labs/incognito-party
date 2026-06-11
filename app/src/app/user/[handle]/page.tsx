@@ -8,7 +8,11 @@ import { HandleDisplay } from '@/components/shared/HandleDisplay'
 import FollowersList from '@/components/users/FollowersList'
 import { PostCard } from '@/components/feed/PostCard'
 import { formatRelativeTime } from '@/lib/utils'
-import type { IAnonUser, IPost } from '@/types'
+import { PersonaCard } from '@/components/ai/PersonaCard'
+import { AdvicePanel } from '@/components/ai/AdvicePanel'
+import { PaidChatModal } from '@/components/dm/PaidChatModal'
+import { CommunityGuidelines } from '@/components/shared/CommunityGuidelines'
+import type { IAnonUser, IPost, IPersona } from '@/types'
 
 export default function UserProfilePage({
   params,
@@ -17,6 +21,8 @@ export default function UserProfilePage({
 }) {
   const { handle } = use(params)
   const router = useRouter()
+  const supabase = createClient()
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [user, setUser] = useState<IAnonUser | null>(null)
   const [posts, setPosts] = useState<IPost[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,10 +34,14 @@ export default function UserProfilePage({
   const [showFollowing, setShowFollowing] = useState(false)
   const [followerCount, setFollowerCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
+  const [persona, setPersona] = useState<IPersona | null>(null)
+  const [personaLoading, setPersonaLoading] = useState(false)
+  const [advice, setAdvice] = useState<string | null>(null)
+  const [adviceLoading, setAdviceLoading] = useState(false)
+  const [showPaidChat, setShowPaidChat] = useState(false)
+  const [showGuidelines, setShowGuidelines] = useState(false)
 
   useEffect(() => {
-    const supabase = createClient()
-
     async function load() {
       const { data: userData, error: userErr } = await supabase
         .from('anon_users')
@@ -83,11 +93,49 @@ export default function UserProfilePage({
         // ignore
       }
 
+      // Get current user
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) setCurrentUserId(authUser.id)
+
+      // Auto-load persona and advice for own profile
+      if (authUser?.id === u.id && p.length > 0) {
+        loadPersona(p)
+        loadAdvice(p)
+      }
+
       setLoading(false)
     }
 
     load()
   }, [handle])
+
+  const loadPersona = async (posts?: IPost[]) => {
+    if (personaLoading) return
+    setPersonaLoading(true)
+    try {
+      const resp = await fetch('/api/ai/persona', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posts: posts ?? posts }),
+      })
+      const data = await resp.json()
+      if (data.persona) setPersona(data)
+    } catch { /* ignore */ } finally { setPersonaLoading(false) }
+  }
+
+  const loadAdvice = async (posts?: IPost[]) => {
+    if (adviceLoading) return
+    setAdviceLoading(true)
+    try {
+      const resp = await fetch('/api/ai/advice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ posts: posts ?? posts }),
+      })
+      const data = await resp.json()
+      if (data.advice) setAdvice(data.advice)
+    } catch { /* ignore */ } finally { setAdviceLoading(false) }
+  }
 
   if (loading) {
     return (
@@ -149,16 +197,45 @@ export default function UserProfilePage({
           <button onClick={() => setShowFollowers(true)} className="text-inc-muted">Followers <span className="ml-1 text-inc-text">{followerCount}</span></button>
           <button onClick={() => setShowFollowing(true)} className="text-inc-muted">Following <span className="ml-1 text-inc-text">{followingCount}</span></button>
         </div>
-        <button
-          onClick={() => router.push(`/dm/${user.handle}`)}
-          className="flex items-center gap-2 rounded-xl border border-inc-accent bg-inc-accent/10 px-5 py-2 text-sm font-medium text-inc-accent hover:bg-inc-accent/20 transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          Send DM
-        </button>
+        <div className="flex gap-2 mt-1">
+          {currentUserId !== user.id ? (
+            <>
+              <button
+                onClick={() => setShowPaidChat(true)}
+                className="flex items-center gap-2 rounded-xl border border-inc-accent bg-inc-accent/10 px-5 py-2 text-sm font-medium text-inc-accent hover:bg-inc-accent/20 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Send DM
+              </button>
+              <button
+                onClick={() => setShowPaidChat(true)}
+                className="flex items-center gap-1.5 rounded-xl bg-inc-accent px-5 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                Chat with credits
+              </button>
+            </>
+          ) : (
+            <div className="flex gap-2">
+              <button onClick={() => setShowGuidelines(true)} className="text-inc-muted hover:text-inc-text text-xs underline transition-colors">
+                Community Guidelines
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* AI insights - only shown on own profile */}
+      {currentUserId === user.id && persona && (
+        <PersonaCard persona={persona} onRefresh={() => loadPersona()} loading={personaLoading} />
+      )}
+      {currentUserId === user.id && advice && (
+        <AdvicePanel advice={advice} onRefresh={() => loadAdvice()} loading={adviceLoading} />
+      )}
 
       <div className="space-y-3">
         {posts.length === 0 ? (
