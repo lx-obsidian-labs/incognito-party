@@ -25,9 +25,11 @@ export function MessageComposer({ recipientId, currentUserId, onSent, onTyping }
     const supabase = createClient()
 
     // If we don't have a currentUserId prop, attempt anonymous sign-in
-    if (!currentUserId) {
+      if (!currentUserId) {
       try {
-        const { data: anonData, error: anonErr } = await supabase.auth.signInAnonymously()
+        // signInAnonymously has a union return type in the supabase client typings.
+        // Cast to any to avoid a type narrowing issue during build — behavior is unchanged at runtime.
+        const { data: anonData, error: anonErr } = (await supabase.auth.signInAnonymously()) as any
         if (anonErr || !anonData?.user) {
           setSending(false)
           toast(anonErr?.message ?? 'Anonymous sign-in failed')
