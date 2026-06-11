@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 interface Props {
   handle: string
@@ -61,21 +62,21 @@ export function HandleDisplay({ handle, size = 'md', className, online }: Props)
       onClick={async () => {
           const supabase = createClient()
           const { data: { session } } = await supabase.auth.getSession()
-          if (!session?.user) { alert('Sign in to follow'); return }
+          if (!session?.user) { toast('Sign in to follow'); return }
           // resolve handle -> id before calling follow APIs
           const { data: u } = await supabase.from('anon_users').select('id').eq('handle', handle).maybeSingle()
-          if (!u) { alert('User not found'); return }
+          if (!u) { toast('User not found'); return }
           const uid = u.id as string
           if (!isFollowed) {
             const res = await fetch('/api/users/follow', { method: 'POST', body: JSON.stringify({ followed_id: uid }), headers: { 'Content-Type': 'application/json' } })
             const j = await res.json()
             if (j.success) setIsFollowed(true)
-            else alert(j.error || 'Could not follow')
+            else toast(j.error || 'Could not follow')
           } else {
             const res = await fetch(`/api/users/follow?followed_id=${encodeURIComponent(uid)}`, { method: 'DELETE' })
             const j = await res.json()
             if (j.success) setIsFollowed(false)
-            else alert(j.error || 'Could not unfollow')
+            else toast(j.error || 'Could not unfollow')
           }
         }}
         className="ml-2 text-xs text-inc-muted hover:underline"

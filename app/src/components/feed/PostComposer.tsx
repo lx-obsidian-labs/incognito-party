@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { usePostDraft } from '@/hooks/usePostDraft'
+import { AIEnhanceModal } from './AIEnhanceModal'
+import { Tooltip } from '@/components/shared/Tooltip'
 
 interface Props {
   channelId: string
@@ -22,6 +24,7 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
   const [showScheduler, setShowScheduler] = useState(false)
   const [isMoment, setIsMoment] = useState(false)
   const [mood, setMood] = useState<string | null>(null)
+  const [showAI, setShowAI] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -196,10 +199,6 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
 
     return (
       <div className="rounded-2xl border border-inc-border bg-inc-card p-4">
-      {/* Auth diagnostic: shows whether a session user is present. Helpful for debugging RLS/auth issues. */}
-      <div className="mb-2 text-xs text-inc-muted">
-        Auth: {authUser ? `signed in (id ${String(authUser.id).slice(0, 8)}...)` : 'no active session — will use server fallback'}
-      </div>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
@@ -253,6 +252,19 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
       )}
       <div className="flex items-center justify-between pt-3">
         <div className="flex items-center gap-2">
+          <Tooltip content="Rewrite with AI">
+            <button
+              onClick={() => setShowAI(true)}
+              disabled={!content.trim()}
+              aria-label="AI Enhance"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-inc-muted hover:bg-inc-border transition-colors focus-visible:ring-2 focus-visible:ring-inc-accent focus-visible:outline-none disabled:opacity-40"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+              </svg>
+              <span className="hidden sm:inline">AI</span>
+            </button>
+          </Tooltip>
           <button
             onClick={() => fileRef.current?.click()}
             aria-label="Attach image"
@@ -261,7 +273,7 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
             </svg>
-            Image
+            <span className="hidden sm:inline">Image</span>
           </button>
           <input
             ref={fileRef}
@@ -311,6 +323,12 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
           {posting ? 'Posting...' : scheduledDate ? 'Schedule' : 'Post'}
         </button>
       </div>
+      <AIEnhanceModal
+        open={showAI}
+        original={content}
+        onClose={() => setShowAI(false)}
+        onApply={(rewritten) => setContent(rewritten)}
+      />
     </div>
   )
 }

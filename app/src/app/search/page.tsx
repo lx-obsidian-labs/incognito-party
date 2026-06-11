@@ -32,24 +32,20 @@ export default function SearchPage() {
       const supabase = createClient()
       const q = query.toLowerCase()
 
-      const { data: allPosts } = await supabase.from('posts').select()
-      const postResults = (allPosts as Record<string, unknown>[]).filter((p) =>
-        (p.content as string).toLowerCase().includes(q),
-      )
+      const [{ data: postsData }, { data: usersData }] = await Promise.all([
+        supabase.from('posts').select('*').ilike('content', `%${q}%`).limit(20),
+        supabase.from('anon_users').select('*').ilike('handle', `%${q}%`).limit(20),
+      ])
 
-      const { data: allUsers } = await supabase.from('anon_users').select()
-      const userResults = (allUsers as Record<string, unknown>[]).filter((u) =>
-        (u.handle as string).toLowerCase().includes(q),
-      )
+      const postResults = (postsData ?? []) as Record<string, unknown>[]
+      const userResults = (usersData ?? []) as Record<string, unknown>[]
 
-      if (postResults.length > 0 || userResults.length > 0) {
-        const { data: anonUsers } = await supabase.from('anon_users').select()
-        const userMap = new Map(
-          (anonUsers ?? []).map((u: Record<string, unknown>) => [u.id, u]),
-        )
+      if (postResults.length > 0) {
+        const authorIds = [...new Set(postResults.map((p) => p.author_id as string))]
+        const { data: authors } = await supabase.from('anon_users').select('id, handle').in('id', authorIds)
+        const userMap = new Map((authors ?? []).map((u: Record<string, unknown>) => [u.id, u.handle as string]))
         for (const p of postResults) {
-          const author = userMap.get(p.author_id as string)
-          p.author_handle = (author as Record<string, unknown> | undefined)?.handle ?? 'Unknown'
+          p.author_handle = userMap.get(p.author_id as string) ?? 'Unknown'
         }
       }
 

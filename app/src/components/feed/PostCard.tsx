@@ -12,6 +12,7 @@ import { MarkdownContent } from '@/components/shared/MarkdownContent'
 import { formatRelativeTime } from '@/lib/utils'
 import type { IPost } from '@/types'
 import { toast } from 'sonner'
+import { SentimentBadge } from './SentimentBadge'
 
 const TipModal = dynamic(() => import('./TipModal').then((m) => ({ default: m.TipModal })), { ssr: false })
 const ConfirmModal = dynamic(() => import('@/components/shared/ConfirmModal').then((m) => ({ default: m.ConfirmModal })), { ssr: false })
@@ -40,10 +41,12 @@ export function PostCard({ post }: Props) {
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) setCurrentUserId(session.user.id)
-    })
-    supabase.from('wallets').select('balance').eq('user_id', post.author_id).single().then(({ data }) => {
-      if (data) setBalance(data.balance as number)
+      if (session?.user) {
+        setCurrentUserId(session.user.id)
+        supabase.from('wallets').select('balance').eq('user_id', session.user.id).single().then(({ data }) => {
+          if (data) setBalance(data.balance as number)
+        })
+      }
     })
     supabase.from('anon_users').select('last_seen').eq('id', post.author_id).single().then(({ data }) => {
       if (data) {
@@ -258,11 +261,12 @@ export function PostCard({ post }: Props) {
               {formatRelativeTime(localPost.created_at)}
             </span>
           </div>
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
             {localPost.mood && (
               <span className="inline-block text-xs px-2 py-1 rounded-full bg-inc-secondary text-inc-muted">{localPost.mood}</span>
             )}
             <span className="text-xs text-inc-muted">💬 {localPost.comments_count ?? 0} responses</span>
+            <SentimentBadge content={localPost.content} />
           </div>
           {editing ? (
             <div className="mt-2 space-y-2">

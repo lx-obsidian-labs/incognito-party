@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { ToastProvider } from '@/components/shared/Toast'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 import InitSession from './init-session'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -30,7 +31,7 @@ export default function RootLayout({
         <ToastProvider />
         <main className="mx-auto max-w-lg min-h-screen pb-20">
           <InitSession />
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </main>
         <Navbar />
       </body>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function CommentComposer({ postId, onCreated }: { postId: string; onCreated?: (c: any) => void }) {
   const [content, setContent] = useState('')
@@ -16,11 +17,11 @@ export default function CommentComposer({ postId, onCreated }: { postId: string;
         setContent('')
         onCreated?.(json.comment)
       } else {
-        alert(json.error || 'Could not post comment')
+        toast(json.error || 'Could not post comment')
       }
     } catch (err) {
       console.error(err)
-      alert('Network error')
+      toast('Network error')
     } finally { setLoading(false) }
   }
 

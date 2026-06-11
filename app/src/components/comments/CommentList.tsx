@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { useSession } from '@/hooks/useSession'
 
 function relTime(iso?: string) {
@@ -26,7 +27,7 @@ export default function CommentList({ comments: initial }: { comments: any[] }) 
     const res = await fetch(`/api/comments?id=${id}`, { method: 'DELETE' })
     const j = await res.json()
     if (j.success) setComments((s) => s.filter((c: any) => c.id !== id))
-    else alert(j.error || 'Could not delete')
+    else toast(j.error || 'Could not delete')
   }
 
   async function edit(id: string, current: string) {
@@ -62,11 +63,11 @@ export default function CommentList({ comments: initial }: { comments: any[] }) 
                   <div className="mt-2 flex gap-2 justify-end">
                     <button onClick={async () => {
                       const content = (c._editContent ?? '').trim()
-                      if (!content) { alert('Content required'); return }
+                      if (!content) { toast('Content required'); return }
                       const res = await fetch('/api/comments', { method: 'PATCH', body: JSON.stringify({ id: c.id, content }), headers: { 'Content-Type': 'application/json' } })
                       const j = await res.json()
                       if (j.comment) setComments((s: any[]) => s.map((x: any) => x.id === c.id ? j.comment : x))
-                      else alert(j.error || 'Could not update')
+                      else toast(j.error || 'Could not update')
                     }} className="rounded-full bg-inc-accent px-3 py-1 text-xs font-medium text-black">Save</button>
                     <button onClick={() => setComments((s: any[]) => s.map((x: any) => x.id === c.id ? { ...x, _editing: false, _editContent: undefined } : x))} className="rounded-full border border-inc-border px-3 py-1 text-xs">Cancel</button>
                   </div>

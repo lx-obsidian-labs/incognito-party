@@ -10,14 +10,22 @@
   --color-inc-primary: #0D1026;
   --color-inc-secondary: #171C42;
   --color-inc-warm-accent: #F6B73C;
-  --color-inc-text: #e8e8f0;
-  --color-inc-muted: #8888aa;
+  --color-inc-text: #f0f0fa;
+  --color-inc-muted: #9999bb;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
 body {
   background: var(--color-inc-dark);
   color: var(--color-inc-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(0, 240, 255, 0.25);
+  color: #fff;
 }
 
 /* Mobile-first container tweaks */
