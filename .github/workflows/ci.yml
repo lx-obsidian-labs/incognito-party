@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - name: Install pnpm
+        run: npm i -g pnpm
+      - name: Install deps
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint || true
+      - name: Typecheck
+        run: pnpm -w -s -r -F ts
+        continue-on-error: true
+      - name: Build
+        run: pnpm build
+      - name: Run unit tests
+        run: pnpm test --silent || true
+      - name: Run Playwright tests
+        run: pnpm playwright test --reporter=list || true

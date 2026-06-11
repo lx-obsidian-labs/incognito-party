@@ -1,0 +1,33 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js build output
+/.next/
+out/
+build/
+
+# Local env files
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Ignore app level node_modules (project places deps under app/)
+app/node_modules/
+
+# Logs
+logs/
+*.log
