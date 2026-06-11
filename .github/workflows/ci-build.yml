@@ -1,0 +1,29 @@
+name: CI — Build
+
+on:
+  push:
+    branches: [ main, feat/responsive-ui ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (no optional)
+        run: |
+          cd app
+          npm ci --no-optional
+
+      - name: Build
+        run: |
+          cd app
+          npm run build
