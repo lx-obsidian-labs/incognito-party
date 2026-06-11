@@ -26,6 +26,8 @@ export default function UserProfilePage({
   const [superLikeCount, setSuperLikeCount] = useState(0)
   const [showFollowers, setShowFollowers] = useState(false)
   const [showFollowing, setShowFollowing] = useState(false)
+  const [followerCount, setFollowerCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
@@ -67,6 +69,18 @@ export default function UserProfilePage({
         setTipCount(items.filter((i) => i.type === 'tip').reduce((s, i) => s + i.amount, 0))
         setLikeCount(items.filter((i) => i.type === 'like').length)
         setSuperLikeCount(items.filter((i) => i.type === 'super_like').length)
+      }
+
+      // load follower/following counts
+      try {
+        const [fRes, fgRes] = await Promise.all([
+          fetch(`/api/users/follows?handle=${encodeURIComponent(handle)}&type=followers`).then((r) => r.json()),
+          fetch(`/api/users/follows?handle=${encodeURIComponent(handle)}&type=following`).then((r) => r.json()),
+        ])
+        setFollowerCount(fRes.count ?? 0)
+        setFollowingCount(fgRes.count ?? 0)
+      } catch (e) {
+        // ignore
       }
 
       setLoading(false)
@@ -132,8 +146,8 @@ export default function UserProfilePage({
           </div>
         </div>
         <div className="flex gap-4 mt-3 text-sm">
-          <button onClick={() => setShowFollowers(true)} className="text-inc-muted">Followers</button>
-          <button onClick={() => setShowFollowing(true)} className="text-inc-muted">Following</button>
+          <button onClick={() => setShowFollowers(true)} className="text-inc-muted">Followers <span className="ml-1 text-inc-text">{followerCount}</span></button>
+          <button onClick={() => setShowFollowing(true)} className="text-inc-muted">Following <span className="ml-1 text-inc-text">{followingCount}</span></button>
         </div>
         <button
           onClick={() => router.push(`/dm/${user.handle}`)}
