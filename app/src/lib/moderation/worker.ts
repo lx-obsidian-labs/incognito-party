@@ -6,16 +6,26 @@ async function runOnce() {
   const { data: jobs } = await supabase.from('moderation_jobs').select('*').eq('status', 'pending').limit(1)
   if (!jobs || jobs.length === 0) return
   const job = jobs[0]
-  await supabase.from('moderation_jobs').update({ status: 'processing' }).eq('id', job.id)
+  await processJob(job.id)
+}
 
-  // load post
+export async function runWorker() {
+  await runOnce()
+}
+
+export async function processJob(jobId: string) {
+  const supabase = createAdminClient()
+  const { data: job } = await supabase.from('moderation_jobs').select('*').eq('id', jobId).maybeSingle()
+  if (!job) return null
+  await supabase.from('moderation_jobs').update({ status: 'processing' }).eq('id', jobId)
+
   const { data: post } = await supabase.from('posts').select('id, content').eq('id', job.post_id).maybeSingle()
   if (!post) {
-    await supabase.from('moderation_jobs').update({ status: 'failed' }).eq('id', job.id)
-    return
+    await supabase.from('moderation_jobs').update({ status: 'failed' }).eq('id', jobId)
+    return null
   }
 
-  // call NVIDIA or Pollination using similar logic as API
+  // call NVIDIA moderation
   const nvidiaKey = process.env.NVIDIA_API_KEY
   const nvidiaBase = process.env.NVIDIA_API_URL
   let result: any = { flagged: false }
@@ -38,12 +48,7 @@ async function runOnce() {
     console.error('worker nvidia error', e)
   }
 
-  // persist result and mark post
-  await supabase.from('moderation_jobs').update({ status: 'done', result, processed_at: new Date().toISOString() }).eq('id', job.id)
+  await supabase.from('moderation_jobs').update({ status: 'done', result, processed_at: new Date().toISOString() }).eq('id', jobId)
   await supabase.from('posts').update({ is_flagged: !!result.flagged }).eq('id', job.post_id)
-}
-
-export async function runWorker() {
-  // run one job at a time synchronously (avoid long loops in serverless)
-  await runOnce()
+  return result
 }
