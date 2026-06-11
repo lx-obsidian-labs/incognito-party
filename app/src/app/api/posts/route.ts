@@ -131,5 +131,20 @@ export async function POST(req: Request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // enqueue async moderation (best-effort)
+  ;(async () => { await maybeEnqueueModeration((data as any)?.id) })()
+
   return NextResponse.json({ post: data })
+}
+
+// Optionally enqueue the post for async moderation (if queue table exists)
+async function maybeEnqueueModeration(postId: string | undefined) {
+  if (!postId) return
+  try {
+    const supabase = await createServerSupabaseClient()
+    // If moderation_jobs table exists, insert a job
+    await supabase.from('moderation_jobs').insert({ post_id: postId })
+  } catch (e) {
+    // ignore
+  }
 }
