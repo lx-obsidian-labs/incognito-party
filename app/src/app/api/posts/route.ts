@@ -48,12 +48,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Content exceeds 500 characters' }, { status: 400 })
   }
 
+  // Optional moderation via Pollination/Aggregated moderation API
+  let is_flagged = false
+  try {
+    const key = process.env.POLLINATION_API_KEY
+    const url = process.env.POLLINATION_API_URL
+    if (key && url) {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${key}`,
+        },
+        body: JSON.stringify({ text: content }),
+      })
+      if (resp.ok) {
+        const j = await resp.json().catch(() => null)
+        // Interpret response: accept either { flagged: boolean } or { score: number }
+        if (j) {
+          if (typeof j.flagged === 'boolean') is_flagged = j.flagged
+          else if (typeof j.score === 'number') is_flagged = j.score >= 0.7
+          else if (j.labels && Array.isArray(j.labels) && j.labels.length > 0) is_flagged = true
+        }
+      }
+    }
+  } catch (e) {
+    // don't block posting on moderation API failure
+    console.error('Moderation API error', e)
+  }
+
   const { data, error } = await supabase.from('posts').insert({
     channel_id,
     author_id: user.id,
     content: content.trim(),
     media_url: media_url ?? null,
     mood: mood ?? null,
+    is_flagged,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
