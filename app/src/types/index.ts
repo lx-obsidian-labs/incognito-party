@@ -31,6 +31,7 @@ export interface IPost {
   super_like_count?: number
   tip_count?: number
   views?: number
+  mood?: string | null
   scheduled_at?: string | null
   is_moment?: boolean
   expires_at?: string | null

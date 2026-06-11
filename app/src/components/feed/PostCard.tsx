@@ -258,11 +258,12 @@ export function PostCard({ post }: Props) {
               {formatRelativeTime(localPost.created_at)}
             </span>
           </div>
-          {localPost.mood && (
-            <div className="mt-2">
-              <span className="inline-block text-xs px-2 py-1 rounded-full bg-inc-dark text-inc-muted">{localPost.mood}</span>
-            </div>
-          )}
+          <div className="mt-2 flex items-center gap-2">
+            {localPost.mood && (
+              <span className="inline-block text-xs px-2 py-1 rounded-full bg-inc-secondary text-inc-muted">{localPost.mood}</span>
+            )}
+            <span className="text-xs text-inc-muted">💬 {localPost.comments_count ?? 0} responses</span>
+          </div>
           {editing ? (
             <div className="mt-2 space-y-2">
               <textarea

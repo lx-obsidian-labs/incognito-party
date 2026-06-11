@@ -11,8 +11,10 @@ export async function GET(req: Request) {
     .from('posts')
     .select(`
       *,
+      mood,
       author:author_id ( handle ),
-      interactions ( type, user_id )
+      interactions ( type, user_id ),
+      comments_count: (select count(*) from comments where comments.post_id = posts.id)
     `)
     .eq('is_removed', false)
     .order('created_at', { ascending: false })
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { channel_id, content, media_url } = await req.json()
+  const { channel_id, content, media_url, mood } = await req.json()
   if (!channel_id || !content?.trim()) {
     return NextResponse.json({ error: 'channel_id and content required' }, { status: 400 })
   }
@@ -51,6 +53,7 @@ export async function POST(req: Request) {
     author_id: user.id,
     content: content.trim(),
     media_url: media_url ?? null,
+    mood: mood ?? null,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
