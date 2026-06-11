@@ -1,6 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   handle: string
@@ -25,6 +27,20 @@ function colorFromHandle(handle: string): string {
 export function HandleDisplay({ handle, size = 'md', className, online }: Props) {
   const color = colorFromHandle(handle)
   const sizeClass = { sm: 'text-sm', md: 'text-base', lg: 'text-lg' }
+  const [isFollowed, setIsFollowed] = useState(false)
+
+  useEffect(() => {
+    // check follow status when rendered inside client
+    let mounted = true
+    const supabase = createClient()
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) return
+      const { data } = await supabase.from('follows').select('*').eq('follower_id', session.user.id).eq('followed_id', handle).maybeSingle()
+      if (!mounted) return
+      setIsFollowed(!!data)
+    }).catch(() => {})
+    return () => { mounted = false }
+  }, [handle])
 
   return (
     <span className={cn('inline-flex items-center gap-1.5', className)}>
@@ -37,6 +53,27 @@ export function HandleDisplay({ handle, size = 'md', className, online }: Props)
       <span className={cn('font-bold tracking-tight', sizeClass[size])} style={{ color }}>
         @{handle}
       </span>
+      <button
+        onClick={async () => {
+          const supabase = createClient()
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session?.user) { alert('Sign in to follow'); return }
+          if (!isFollowed) {
+            const res = await fetch('/api/users/follow', { method: 'POST', body: JSON.stringify({ followed_id: handle }), headers: { 'Content-Type': 'application/json' } })
+            const j = await res.json()
+            if (j.success) setIsFollowed(true)
+            else alert(j.error || 'Could not follow')
+          } else {
+            const res = await fetch(`/api/users/follow?followed_id=${encodeURIComponent(handle)}`, { method: 'DELETE' })
+            const j = await res.json()
+            if (j.success) setIsFollowed(false)
+            else alert(j.error || 'Could not unfollow')
+          }
+        }}
+        className="ml-2 text-xs text-inc-muted hover:underline"
+      >
+        {isFollowed ? 'Following' : 'Follow'}
+      </button>
     </span>
   )
 }
