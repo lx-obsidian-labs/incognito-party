@@ -1,3 +1,5 @@
 {
-  "rootDirectory": "app"
+  "builds": [
+    { "src": "app/package.json", "use": "@vercel/next" }
+  ]
 }
