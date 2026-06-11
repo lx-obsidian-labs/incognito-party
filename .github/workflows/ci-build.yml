@@ -18,10 +18,10 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies (no optional)
+      - name: Install dependencies (omit optional native binaries)
         run: |
           cd app
-          npm ci --no-optional
+          npm install --omit=optional
 
       - name: Build
         run: |
