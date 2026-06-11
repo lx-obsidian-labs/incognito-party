@@ -7,6 +7,9 @@
   --color-inc-accent: #00f0ff;
   --color-inc-accent-hover: #00d0e0;
   --color-inc-tip: #ff00aa;
+  --color-inc-primary: #0D1026;
+  --color-inc-secondary: #171C42;
+  --color-inc-warm-accent: #F6B73C;
   --color-inc-text: #e8e8f0;
   --color-inc-muted: #8888aa;
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -16,6 +19,22 @@ body {
   background: var(--color-inc-dark);
   color: var(--color-inc-text);
 }
+
+/* Mobile-first container tweaks */
+main {
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+}
+
+/* Floating create button safe area */
+.nav-safe-bottom { padding-bottom: 68px }
 
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(8px); }

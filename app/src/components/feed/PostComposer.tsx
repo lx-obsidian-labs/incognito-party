@@ -21,6 +21,7 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
   const [scheduledDate, setScheduledDate] = useState<string>('')
   const [showScheduler, setShowScheduler] = useState(false)
   const [isMoment, setIsMoment] = useState(false)
+  const [mood, setMood] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -135,6 +136,7 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
     const body: Record<string, unknown> = {
       channel_id: channelId,
       content: trimmed,
+      mood: mood ?? null,
       media_url: mediaUrls ? JSON.stringify(mediaUrls) : null,
       scheduled_at: scheduledDate || null,
       is_moment: isMoment || null,
@@ -201,12 +203,25 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Share what's on your mind..."
+        placeholder={channelId === 'advice' ? "What advice are you looking for today?" : "Share what's on your mind..."}
         maxLength={500}
         rows={3}
         aria-label="Post content"
         className="w-full resize-none bg-transparent text-inc-text placeholder-inc-muted outline-none text-sm leading-relaxed focus-visible:ring-0"
       />
+      <div className="mt-3 flex gap-2 items-center">
+        <div className="text-xs text-inc-muted">Mood:</div>
+        {['😊 Happy', '😔 Sad', '😟 Anxious', '😡 Angry', '😕 Confused'].map((m) => (
+          <button
+            key={m}
+            onClick={() => setMood(m)}
+            className={`text-sm rounded-full px-3 py-1 ${mood === m ? 'bg-inc-accent text-inc-dark' : 'bg-inc-dark text-inc-muted'}`}
+            aria-pressed={mood === m}
+          >
+            {m}
+          </button>
+        ))}
+      </div>
       {preview.length > 0 && (
         <div className="mt-3 flex gap-2 overflow-x-auto">
           {preview.map((url, i) => (

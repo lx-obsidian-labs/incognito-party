@@ -86,6 +86,14 @@ export function Navbar() {
             </Link>
           )
         })}
+        {/* Floating create button centered */}
+        <button
+          aria-label="Create Post"
+          onClick={() => window.location.href = '/feed'}
+          className="absolute -top-6 left-1/2 -translate-x-1/2 rounded-full bg-inc-accent p-3 shadow-lg text-inc-dark focus-visible:ring-2 focus-visible:ring-inc-accent"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
       </div>
     </nav>
   )

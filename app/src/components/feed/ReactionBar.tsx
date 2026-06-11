@@ -3,7 +3,13 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const EMOJIS = ['❤️', '🔥', '💯', '😂', '😢']
+const EMOJIS = [
+  { emoji: '❤️', label: 'Support' },
+  { emoji: '💡', label: 'Helpful' },
+  { emoji: '👏', label: 'Encouraging' },
+  { emoji: '🎯', label: 'Insightful' },
+  { emoji: '🤝', label: 'Relatable' },
+]
 
 interface Props {
   postId: string
@@ -60,20 +66,21 @@ export function ReactionBar({ postId, currentUserId }: Props) {
 
   return (
     <div className="mt-2 flex items-center gap-1.5">
-      {EMOJIS.map((emoji) => {
+      {EMOJIS.map(({ emoji, label }) => {
         const count = reactionCounts[emoji] ?? 0
         const reacted = userReactions.has(emoji)
         return (
           <button
             key={emoji}
             onClick={() => toggleReaction(emoji)}
-            aria-label={`React with ${emoji}`}
-            className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-sm transition-all ${
+            aria-label={`React with ${label}`}
+            title={label}
+            className={`flex items-center gap-1 rounded-full px-3 py-1 text-sm transition-all ${
               reacted ? 'bg-inc-accent/20 ring-1 ring-inc-accent/50 scale-110' : 'hover:bg-inc-border/50'
             }`}
           >
             <span className="text-base">{emoji}</span>
-            {count > 0 && <span className="text-xs text-inc-muted">{count}</span>}
+            <span className="text-xs text-inc-muted">{count}</span>
           </button>
         )
       })}
