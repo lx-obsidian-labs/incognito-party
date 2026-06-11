@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AvatarPlaceholder } from '@/components/shared/AvatarPlaceholder'
 import { HandleDisplay } from '@/components/shared/HandleDisplay'
+import FollowersList from '@/components/users/FollowersList'
 import { PostCard } from '@/components/feed/PostCard'
 import { formatRelativeTime } from '@/lib/utils'
 import type { IAnonUser, IPost } from '@/types'
@@ -23,6 +24,8 @@ export default function UserProfilePage({
   const [tipCount, setTipCount] = useState(0)
   const [likeCount, setLikeCount] = useState(0)
   const [superLikeCount, setSuperLikeCount] = useState(0)
+  const [showFollowers, setShowFollowers] = useState(false)
+  const [showFollowing, setShowFollowing] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -128,6 +131,10 @@ export default function UserProfilePage({
             <p className="text-inc-muted text-xs">likes</p>
           </div>
         </div>
+        <div className="flex gap-4 mt-3 text-sm">
+          <button onClick={() => setShowFollowers(true)} className="text-inc-muted">Followers</button>
+          <button onClick={() => setShowFollowing(true)} className="text-inc-muted">Following</button>
+        </div>
         <button
           onClick={() => router.push(`/dm/${user.handle}`)}
           className="flex items-center gap-2 rounded-xl border border-inc-accent bg-inc-accent/10 px-5 py-2 text-sm font-medium text-inc-accent hover:bg-inc-accent/20 transition-colors"
@@ -156,6 +163,29 @@ export default function UserProfilePage({
           ))
         )}
       </div>
+      {/* Modals for followers/following */}
+      {showFollowers && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-inc-card rounded-xl p-6 w-96">
+            <h3 className="text-lg font-semibold mb-3">Followers</h3>
+            <FollowersList handle={user.handle} type="followers" />
+            <div className="mt-4 text-right">
+              <button onClick={() => setShowFollowers(false)} className="px-4 py-2 rounded-full border">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showFollowing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-inc-card rounded-xl p-6 w-96">
+            <h3 className="text-lg font-semibold mb-3">Following</h3>
+            <FollowersList handle={user.handle} type="following" />
+            <div className="mt-4 text-right">
+              <button onClick={() => setShowFollowing(false)} className="px-4 py-2 rounded-full border">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
