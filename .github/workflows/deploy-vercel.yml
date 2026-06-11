@@ -3,7 +3,7 @@ name: Deploy to Vercel
 on:
   push:
     branches:
-      - feat/responsive-ui
+      - main
 
 jobs:
   deploy:

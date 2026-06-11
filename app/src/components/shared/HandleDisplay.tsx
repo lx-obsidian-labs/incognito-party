@@ -35,7 +35,11 @@ export function HandleDisplay({ handle, size = 'md', className, online }: Props)
     const supabase = createClient()
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session?.user) return
-      const { data } = await supabase.from('follows').select('*').eq('follower_id', session.user.id).eq('followed_id', handle).maybeSingle()
+      // resolve handle -> user id first
+      const { data: u } = await supabase.from('anon_users').select('id').eq('handle', handle).maybeSingle()
+      if (!u || !mounted) return
+      const uid = u.id as string
+      const { data } = await supabase.from('follows').select('*').eq('follower_id', session.user.id).eq('followed_id', uid).maybeSingle()
       if (!mounted) return
       setIsFollowed(!!data)
     }).catch(() => {})
@@ -54,17 +58,21 @@ export function HandleDisplay({ handle, size = 'md', className, online }: Props)
         @{handle}
       </span>
       <button
-        onClick={async () => {
+      onClick={async () => {
           const supabase = createClient()
           const { data: { session } } = await supabase.auth.getSession()
           if (!session?.user) { alert('Sign in to follow'); return }
+          // resolve handle -> id before calling follow APIs
+          const { data: u } = await supabase.from('anon_users').select('id').eq('handle', handle).maybeSingle()
+          if (!u) { alert('User not found'); return }
+          const uid = u.id as string
           if (!isFollowed) {
-            const res = await fetch('/api/users/follow', { method: 'POST', body: JSON.stringify({ followed_id: handle }), headers: { 'Content-Type': 'application/json' } })
+            const res = await fetch('/api/users/follow', { method: 'POST', body: JSON.stringify({ followed_id: uid }), headers: { 'Content-Type': 'application/json' } })
             const j = await res.json()
             if (j.success) setIsFollowed(true)
             else alert(j.error || 'Could not follow')
           } else {
-            const res = await fetch(`/api/users/follow?followed_id=${encodeURIComponent(handle)}`, { method: 'DELETE' })
+            const res = await fetch(`/api/users/follow?followed_id=${encodeURIComponent(uid)}`, { method: 'DELETE' })
             const j = await res.json()
             if (j.success) setIsFollowed(false)
             else alert(j.error || 'Could not unfollow')

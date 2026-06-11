@@ -1,0 +1,18 @@
+name: Scheduled Moderation Worker
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # every 5 minutes
+  workflow_dispatch: {}
+
+jobs:
+  run-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call moderation run endpoint
+        env:
+          VERCEL_URL: ${{ secrets.VERCEL_URL }}
+          MODERATION_WORKER_SECRET: ${{ secrets.MODERATION_WORKER_SECRET }}
+        run: |
+          if [ -z "$VERCEL_URL" ]; then echo "VERCEL_URL not set"; exit 1; fi
+          curl -sSf -X POST "https://$VERCEL_URL/api/moderation/run" -H "x-moderation-secret: $MODERATION_WORKER_SECRET" | jq || true

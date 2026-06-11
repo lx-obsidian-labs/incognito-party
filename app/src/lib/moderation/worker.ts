@@ -2,15 +2,20 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 async function runOnce() {
   const supabase = createAdminClient()
-  // fetch one pending job
-  const { data: jobs } = await supabase.from('moderation_jobs').select('*').eq('status', 'pending').limit(1)
-  if (!jobs || jobs.length === 0) return
-  const job = jobs[0]
-  await processJob(job.id)
+  // fetch up to 10 pending jobs and process them sequentially
+  const { data: jobs } = await supabase.from('moderation_jobs').select('*').eq('status', 'pending').limit(10)
+  if (!jobs || jobs.length === 0) return []
+  const results: Array<any> = []
+  for (const job of jobs) {
+    // processJob will mark status => processing/done/failed
+    const r = await processJob(job.id)
+    results.push({ jobId: job.id, result: r })
+  }
+  return results
 }
 
 export async function runWorker() {
-  await runOnce()
+  return await runOnce()
 }
 
 export async function processJob(jobId: string) {
