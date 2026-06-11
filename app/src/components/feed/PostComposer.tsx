@@ -148,7 +148,7 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
     // works in common setups. If there's no session available server-side,
     // fall back to the server API which will attempt to set the author.
     // Prefer getUser() which returns the authenticated user object when available.
-    const { data: userData } = await supabase.auth.getUser()
+    const { data: userData } = await (supabase.auth as any).getUser()
     const user = userData?.user
       if (user) {
         // Client-side insert including author_id (should match auth.uid()).
