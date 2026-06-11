@@ -33,10 +33,10 @@ export function PostComposer({ channelId, onPostCreated }: Props) {
   useEffect(() => {
     const supabase = createClient()
     // check current user for diagnostics
-    supabase.auth.getUser().then(({ data }) => {
+    ;(supabase.auth as any).getUser().then(({ data }: any) => {
       setAuthUser(data?.user ?? null)
     })
-    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: listener } = (supabase.auth as any).onAuthStateChange((_: any, session: any) => {
       setAuthUser(session?.user ?? null)
     })
     return () => listener.subscription.unsubscribe()
